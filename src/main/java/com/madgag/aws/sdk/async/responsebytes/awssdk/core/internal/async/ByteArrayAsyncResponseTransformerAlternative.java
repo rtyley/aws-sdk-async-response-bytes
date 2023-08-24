@@ -15,11 +15,6 @@
 
 package com.madgag.aws.sdk.async.responsebytes.awssdk.core.internal.async;
 
-import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
-
-import java.io.ByteArrayOutputStream;
-import java.nio.ByteBuffer;
-import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -27,6 +22,14 @@ import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.utils.BinaryUtils;
+
+import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+
+import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 /**
  * Implementation of {@link AsyncResponseTransformer} that dumps content into a byte array and supports further
@@ -41,8 +44,13 @@ import software.amazon.awssdk.utils.BinaryUtils;
 public final class ByteArrayAsyncResponseTransformerAlternative<ResponseT> implements
         AsyncResponseTransformer<ResponseT, ResponseBytes<ResponseT>> {
 
+    private final Optional<Function<ResponseT, Integer>> knownSize;
     private volatile CompletableFuture<byte[]> cf;
     private volatile ResponseT response;
+
+    public ByteArrayAsyncResponseTransformerAlternative(Optional<Function<ResponseT, Integer>> knownSize) {
+        this.knownSize = knownSize;
+    }
 
     @Override
     public CompletableFuture<ResponseBytes<ResponseT>> prepare() {
@@ -57,7 +65,9 @@ public final class ByteArrayAsyncResponseTransformerAlternative<ResponseT> imple
 
     @Override
     public void onStream(SdkPublisher<ByteBuffer> publisher) {
-        publisher.subscribe(new BaosSubscriber(cf));
+        ByteArrayOutputStream baos =
+                knownSize.map(f -> new ByteArrayOutputStream(f.apply(response))).orElse(new ByteArrayOutputStream());
+        publisher.subscribe(new BaosSubscriber(cf, baos));
     }
 
     @Override
@@ -68,12 +78,13 @@ public final class ByteArrayAsyncResponseTransformerAlternative<ResponseT> imple
     static class BaosSubscriber implements Subscriber<ByteBuffer> {
         private final CompletableFuture<byte[]> resultFuture;
 
-        private ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        private ByteArrayOutputStream baos;
 
         private Subscription subscription;
 
-        BaosSubscriber(CompletableFuture<byte[]> resultFuture) {
+        BaosSubscriber(CompletableFuture<byte[]> resultFuture, ByteArrayOutputStream baos) {
             this.resultFuture = resultFuture;
+            this.baos = baos;
         }
 
         @Override
