@@ -2,9 +2,9 @@ package com.madgag.aws.sdk.async.responsebytes;
 
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
+import com.madgag.aws.sdk.async.responsebytes.awssdk.core.async.AsyncResponseTransformerAlternative;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.core.ResponseBytes;
-import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -23,7 +23,7 @@ public class Main {
             KnownS3Object knownS3Object = KnownS3Object.BIG;
             ResponseBytes<GetObjectResponse> responseBytes = s3Client.getObject(
                     GetObjectRequest.builder().bucket(knownS3Object.bucket()).key(knownS3Object.key()).build(),
-                    AsyncResponseTransformer.toBytes()
+                    AsyncResponseTransformerAlternative.toBytes()
             ).get();
             System.out.println(responseBytes.response().contentLength());
             HashCode hashOfDownloadedData = Hashing.sha256().hashBytes(responseBytes.asByteBuffer());
