@@ -47,7 +47,7 @@ public final class ByteArrayAsyncResponseTransformerAlternative<ResponseT> imple
     @Override
     public CompletableFuture<ResponseBytes<ResponseT>> prepare() {
         cf = new CompletableFuture<>();
-        return cf.thenApply(arr -> ResponseBytes.fromByteArray(response, arr));
+        return cf.thenApply(arr -> ResponseBytes.fromByteArrayUnsafe(response, arr));
     }
 
     @Override
