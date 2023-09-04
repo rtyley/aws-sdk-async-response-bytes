@@ -1,6 +1,6 @@
 # aws-sdk-async-response-bytes
 
-_Reducing memory consumption of the [AWS SDK for Java v2](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/home.html) when loading an S3 object into memory_
+_Reducing memory consumption of the [AWS SDK for Java v2](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/home.html) when loading S3 objects into memory_
 
 This repo is for evaluation of different approaches to reducing memory consumption of the AWS SDK Java v2 [async](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/asynchronous.html)
 method
